@@ -49,5 +49,5 @@ public class User {
     private boolean isUsingMfa;
 
     private LocalDateTime createdAt;
-    
+
 }
