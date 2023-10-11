@@ -1,18 +1,30 @@
 package com.ratz.wemanage.repository.impl;
 
+import com.ratz.wemanage.RowMapper.RoleRowMapper;
 import com.ratz.wemanage.domain.Role;
+import com.ratz.wemanage.exception.ApiException;
 import com.ratz.wemanage.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+
+import static com.ratz.wemanage.enums.RoleType.ROLE_USER;
 
 @Repository
 @RequiredArgsConstructor
 @Slf4j
 public class RoleRepositoryImpl implements RoleRepository<Role> {
 
+    private static final String SELECT_ROLE_BY_NAME_QUERY = "";
+    private static final String INSERT_ROLE_TO_USER_QUERY = "";
+
+    private final NamedParameterJdbcTemplate jdbc;
 
     @Override
     public Role create(Role data) {
@@ -29,6 +41,7 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
         return null;
     }
 
+
     @Override
     public Role update(Long id) {
         return null;
@@ -42,5 +55,35 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
     @Override
     public void addRoleToUser(Long userId, String roleName) {
 
+        log.info("Adding role {} to user id: {}", roleName, userId);
+
+        try {
+            Role role = jdbc.queryForObject(SELECT_ROLE_BY_NAME_QUERY, Map.of("roleName", roleName), new RoleRowMapper());
+            jdbc.update(INSERT_ROLE_TO_USER_QUERY, Map.of("userId", userId, "roleId", Objects.requireNonNull(role).getId()));
+        } catch (EmptyResultDataAccessException e) {
+            throw new ApiException("No role found by name: " + ROLE_USER.name());
+        } catch (Exception e) {
+            throw new ApiException("An error occurred. Please try again.");
+        }
     }
+
+    @Override
+    public Role getRoleByUserId(Long userId) {
+
+
+        return null;
+    }
+
+    @Override
+    public Role getRoleByUserEmail(String email) {
+        return null;
+    }
+
+
+    @Override
+    public void updateUserRole(Long userId, String roleName) {
+
+    }
+
+
 }

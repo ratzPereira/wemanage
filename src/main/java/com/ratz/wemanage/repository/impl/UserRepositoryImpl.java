@@ -7,7 +7,6 @@ import com.ratz.wemanage.repository.RoleRepository;
 import com.ratz.wemanage.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -41,7 +40,7 @@ public class UserRepositoryImpl implements UserRepository<User> {
     public User create(User user) {
 
         // Check the email is unique
-        if(getEmailCount(user.getEmail().trim().toLowerCase()) > 0)
+        if (getEmailCount(user.getEmail().trim().toLowerCase()) > 0)
             throw new ApiException("Email already in use. Please use other email.");
 
         // Save new user
@@ -56,7 +55,7 @@ public class UserRepositoryImpl implements UserRepository<User> {
             roleRepository.addRoleToUser(user.getId(), ROLE_USER.name());
 
             // Send verification URL
-            String verificationUrl= getVerificationUrl(UUID.randomUUID().toString(), ACCOUNT.getType());
+            String verificationUrl = getVerificationUrl(UUID.randomUUID().toString(), ACCOUNT.getType());
 
             // Save URL in verification table
             jdbc.update(INSERT_ACCOUNT_VERIFICATION_URL_QUERY, Map.of("userId", user.getId(), "url", verificationUrl));
@@ -72,14 +71,10 @@ public class UserRepositoryImpl implements UserRepository<User> {
 
 
             // If errors, throw exception with proper message
-        } catch (EmptyResultDataAccessException ex){
-            throw new ApiException("No role found by name: " + ROLE_USER.name());
-
         } catch (Exception ex) {
             throw new ApiException("An error occurred. Please try again.");
         }
     }
-
 
 
     @Override
@@ -102,7 +97,7 @@ public class UserRepositoryImpl implements UserRepository<User> {
         return null;
     }
 
-    private Integer  getEmailCount(String email) {
+    private Integer getEmailCount(String email) {
         return jdbc.queryForObject(COUNT_USER_EMAIL_QUERY, Map.of("email", email), Integer.class);
     }
 
@@ -114,7 +109,7 @@ public class UserRepositoryImpl implements UserRepository<User> {
                 .addValue("password", encoder.encode(user.getPassword()));
     }
 
-    private String getVerificationUrl(String key, String type){
+    private String getVerificationUrl(String key, String type) {
         return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/verify" + type + "/" + key).toUriString();
     }
 }
