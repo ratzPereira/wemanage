@@ -15,14 +15,13 @@ import java.util.Map;
 import java.util.Objects;
 
 import static com.ratz.wemanage.enums.RoleType.ROLE_USER;
+import static com.ratz.wemanage.query.RoleQuery.INSERT_ROLE_TO_USER_QUERY;
+import static com.ratz.wemanage.query.RoleQuery.SELECT_ROLE_BY_NAME_QUERY;
 
 @Repository
 @RequiredArgsConstructor
 @Slf4j
 public class RoleRepositoryImpl implements RoleRepository<Role> {
-
-    private static final String SELECT_ROLE_BY_NAME_QUERY = "";
-    private static final String INSERT_ROLE_TO_USER_QUERY = "";
 
     private final NamedParameterJdbcTemplate jdbc;
 
@@ -69,8 +68,6 @@ public class RoleRepositoryImpl implements RoleRepository<Role> {
 
     @Override
     public Role getRoleByUserId(Long userId) {
-
-
         return null;
     }
 

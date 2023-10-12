@@ -17,4 +17,5 @@ public class WeManageApplication {
 		return new BCryptPasswordEncoder();
 	}
 
+
 }
