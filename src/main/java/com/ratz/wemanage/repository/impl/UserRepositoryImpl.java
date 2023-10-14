@@ -87,7 +87,10 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         }
     }
 
-    private User getUserByEmail(String email) {
+    @Override
+    public User getUserByEmail(String email) {
+        log.info("Getting user by email: {}", email);
+
         try {
             return jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
         } catch (EmptyResultDataAccessException ex) {
@@ -140,6 +143,8 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = getUserByEmail(email);
+
+        log.info("User found by email: {}", email);
 
         if (user == null) throw new UsernameNotFoundException("User not found");
         else return new UserPrincipal(user, roleRepository.getRoleByUserId(user.getId()).getPermission());

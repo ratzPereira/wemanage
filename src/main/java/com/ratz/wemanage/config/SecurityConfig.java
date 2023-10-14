@@ -23,7 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_URLS = {"api/v1/users/**"};
+    private static final String[] PUBLIC_URLS = {"/api/v1/login/**"};
 
     private final BCryptPasswordEncoder encoder;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
@@ -39,7 +39,6 @@ public class SecurityConfig {
         http.authorizeHttpRequests().requestMatchers(HttpMethod.DELETE, "/api/v1/user/delete/**").hasAuthority("DELETE:USER");
         http.authorizeHttpRequests().requestMatchers(HttpMethod.DELETE, "/api/v1/customer/delete/**").hasAuthority("DELETE:CUSTOMER");
         http.exceptionHandling().accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(entryPointHandler);
-        http.authorizeHttpRequests().anyRequest().authenticated();
         return http.build();
     }
 
@@ -52,5 +51,4 @@ public class SecurityConfig {
 
         return new ProviderManager(provider);
     }
-
 }

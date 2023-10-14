@@ -4,7 +4,7 @@ import com.ratz.wemanage.domain.User;
 
 import java.util.Collection;
 
-public interface UserRepository <T extends User> {
+public interface UserRepository<T extends User> {
 
     /* Basic CRUD operations */
     T create(T data);
@@ -15,8 +15,9 @@ public interface UserRepository <T extends User> {
 
     T update(Long id);
 
-    Boolean delete(Long id);
-
     /* more complex CRUD operations */
+    User getUserByEmail(String email);
+
+    Boolean delete(Long id);
 
 }
