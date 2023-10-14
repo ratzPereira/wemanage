@@ -1,6 +1,7 @@
 package com.ratz.wemanage.config;
 
 import com.ratz.wemanage.handler.CustomAccessDeniedHandler;
+import com.ratz.wemanage.handler.CustomAuthenticationEntryPointHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
     private final BCryptPasswordEncoder encoder;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPointHandler entryPointHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,7 +34,7 @@ public class SecurityConfig {
         http.authorizeRequests().antMatchers(PUBLIC_URLS).permitAll();
         http.authorizeRequests().antMatchers(HttpMethod.DELETE, "/api/v1/user/delete/**").hasAuthority("DELETE:USER");
         http.authorizeRequests().antMatchers(HttpMethod.DELETE, "/api/v1/customer/delete/**").hasAuthority("DELETE:CUSTOMER");
-        http.exceptionHandling().accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(null);
+        http.exceptionHandling().accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(entryPointHandler);
         http.authorizeRequests().anyRequest().authenticated();
         return http.build();
     }
