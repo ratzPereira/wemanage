@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {"api/v1/users/**"};
@@ -31,11 +33,11 @@ public class SecurityConfig {
 
         http.csrf().disable().cors().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().antMatchers(PUBLIC_URLS).permitAll();
-        http.authorizeRequests().antMatchers(HttpMethod.DELETE, "/api/v1/user/delete/**").hasAuthority("DELETE:USER");
-        http.authorizeRequests().antMatchers(HttpMethod.DELETE, "/api/v1/customer/delete/**").hasAuthority("DELETE:CUSTOMER");
+        http.authorizeHttpRequests().requestMatchers(PUBLIC_URLS).permitAll();
+        http.authorizeHttpRequests().requestMatchers(HttpMethod.DELETE, "/api/v1/user/delete/**").hasAuthority("DELETE:USER");
+        http.authorizeHttpRequests().requestMatchers(HttpMethod.DELETE, "/api/v1/customer/delete/**").hasAuthority("DELETE:CUSTOMER");
         http.exceptionHandling().accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(entryPointHandler);
-        http.authorizeRequests().anyRequest().authenticated();
+        http.authorizeHttpRequests().anyRequest().authenticated();
         return http.build();
     }
 

@@ -4,6 +4,7 @@ import com.ratz.wemanage.domain.User;
 import com.ratz.wemanage.domain.response.HttpResponse;
 import com.ratz.wemanage.dto.UserDTO;
 import com.ratz.wemanage.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/user")
-    public ResponseEntity<HttpResponse> createUser(@RequestBody User user) {
+    public ResponseEntity<HttpResponse> createUser(@RequestBody @Valid User user) {
 
         UserDTO userDTO = userService.createUser(user);
 
