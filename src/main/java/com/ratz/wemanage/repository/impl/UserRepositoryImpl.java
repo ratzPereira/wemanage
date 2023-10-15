@@ -32,6 +32,7 @@ import java.util.UUID;
 import static com.ratz.wemanage.enums.RoleType.ROLE_USER;
 import static com.ratz.wemanage.enums.VerificationType.ACCOUNT;
 import static com.ratz.wemanage.query.UserQuery.*;
+import static com.ratz.wemanage.utils.SmsUtils.sendSms;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.apache.commons.lang3.time.DateUtils.addDays;
@@ -142,7 +143,7 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             jdbc.update(DELETE_VERIFICATION_CODE_BY_USER_ID, Map.of("id", userDTO.getId()));
             jdbc.update(INSERT_VERIFICATION_CODE_QUERY, Map.of("userId", userDTO.getId(), "code", verificationCode, "expirationDate", expirationDate));
 
-            sendSMS(userDTO.getPhone(), "From: WeManage \nVerification code\n" + verificationCode);
+            sendSms(userDTO.getPhone(), "From: WeManage \nVerification code\n" + verificationCode);
 
         } catch (Exception ex) {
             log.error("Error occurred while sending verification code: {}", ex.getMessage());
