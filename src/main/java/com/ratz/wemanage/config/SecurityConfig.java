@@ -23,7 +23,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private static final String[] PUBLIC_URLS = {"/api/v1/login/**"};
+    private static final String[] PUBLIC_URLS = {"/api/v1/login/**", "/api/v1/user/**", "/api/v1/customer/**"};
 
     private final BCryptPasswordEncoder encoder;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;

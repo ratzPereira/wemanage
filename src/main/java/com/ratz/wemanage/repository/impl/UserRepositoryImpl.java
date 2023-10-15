@@ -143,9 +143,34 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             jdbc.update(INSERT_VERIFICATION_CODE_QUERY, Map.of("userId", userDTO.getId(), "code", verificationCode, "expirationDate", expirationDate));
 
             //sendSms(userDTO.getPhone(), "From: WeManage \nVerification code\n" + verificationCode);
+            log.info("Verification code {} sent successfully", verificationCode);
 
         } catch (Exception ex) {
             log.error("Error occurred while sending verification code: {}", ex.getMessage());
+            throw new ApiException("An error occurred. Please try again.");
+        }
+    }
+
+    @Override
+    public User verifyCode(String email, String code) {
+        try {
+            User userByCode = jdbc.queryForObject(SELECT_USER_BY_USER_CODE_QUERY, Map.of("code", code), new UserRowMapper());
+            User userByEmail = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
+
+            if (userByCode.getEmail().equalsIgnoreCase(userByEmail.getEmail())) {
+
+                jdbc.update(DELETE_CODE, Map.of("code", code));
+                return userByEmail;
+            } else {
+                throw new ApiException("Invalid code. Please try again.");
+            }
+
+        } catch (EmptyResultDataAccessException e) {
+            log.error("Error occurred while verifying code: {}", e.getMessage());
+            throw new ApiException("Unable to find record. Please try again.");
+
+        } catch (Exception ex) {
+            log.error("Error occurred while verifying code: {}", ex.getMessage());
             throw new ApiException("An error occurred. Please try again.");
         }
     }
