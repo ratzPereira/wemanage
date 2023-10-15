@@ -1,6 +1,7 @@
 package com.ratz.wemanage.repository;
 
 import com.ratz.wemanage.domain.User;
+import com.ratz.wemanage.dto.UserDTO;
 
 import java.util.Collection;
 
@@ -20,4 +21,5 @@ public interface UserRepository<T extends User> {
 
     Boolean delete(Long id);
 
+    void sendVerificationCode(UserDTO userDTO);
 }

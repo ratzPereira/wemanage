@@ -38,14 +38,7 @@ public class UserController {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginForm.getEmail(), loginForm.getPassword()));
         UserDTO userDTO = userService.getUserByEmail(loginForm.getEmail());
 
-        return ResponseEntity.ok()
-                .body(HttpResponse.builder()
-                        .timeStamp(now().toString())
-                        .data(Map.of("user", userDTO))
-                        .message("User logged in")
-                        .statusCode(HttpStatus.OK.value())
-                        .httpStatus(HttpStatus.OK)
-                        .build());
+        return userDTO.isUsingMfa() ? sendVerificationCode(userDTO) : sendResponse(userDTO);
     }
 
     @PostMapping("/user")
@@ -65,5 +58,32 @@ public class UserController {
 
     private URI getURI() {
         return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/user/get/<userId>").toUriString());
+    }
+
+
+    private ResponseEntity<HttpResponse> sendResponse(UserDTO userDTO) {
+
+        return ResponseEntity.ok()
+                .body(HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(Map.of("user", userDTO))
+                        .message("User logged in")
+                        .statusCode(HttpStatus.OK.value())
+                        .httpStatus(HttpStatus.OK)
+                        .build());
+    }
+
+    private ResponseEntity<HttpResponse> sendVerificationCode(UserDTO userDTO) {
+
+        userService.sendVerificationCode(userDTO);
+
+        return ResponseEntity.ok()
+                .body(HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(Map.of("user", userDTO))
+                        .message("Verification code sent")
+                        .statusCode(HttpStatus.OK.value())
+                        .httpStatus(HttpStatus.OK)
+                        .build());
     }
 }
