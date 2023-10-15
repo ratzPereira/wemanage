@@ -29,5 +29,10 @@ public class UserServiceImpl implements UserService {
     public void sendVerificationCode(UserDTO userDTO) {
         userRepository.sendVerificationCode(userDTO);
     }
+
+    @Override
+    public User getUser(String email) {
+        return userRepository.getUserByEmail(email);
+    }
 }
 

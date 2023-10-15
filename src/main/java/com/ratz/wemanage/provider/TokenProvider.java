@@ -3,17 +3,26 @@ package com.ratz.wemanage.provider;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.ratz.wemanage.domain.UserPrincipal;
+import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
+import static java.lang.System.currentTimeMillis;
 import static java.time.LocalTime.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
@@ -23,8 +32,8 @@ public class TokenProvider {
 
     public static final String WE_MANAGE = "wemanage";
     public static final String AUTHORITIES = "authorities";
-    public static final int ACCESS_TOKEN_HOURS_TO_ADD = 6;
-    public static final int REFRESH_TOKEN_HOURS_TO_ADD = 96;
+    public static final int ACCESS_TOKEN_HOURS_TO_ADD = 432_000_000;
+    public static final int REFRESH_TOKEN_HOURS_TO_ADD = 432_000_000;
 
 
     @Value("${jwt.secret}")
@@ -36,23 +45,37 @@ public class TokenProvider {
         return JWT.create()
                 .withIssuer(WE_MANAGE)
                 .withAudience(WE_MANAGE)
-                .withIssuedAt(Instant.from(now()))
+                .withIssuedAt(new Date())
                 .withSubject(userPrincipal.getUsername())
                 .withArrayClaim(AUTHORITIES, claims)
-                .withExpiresAt(Instant.from(now().plusHours(ACCESS_TOKEN_HOURS_TO_ADD)))
+                .withExpiresAt(new Date(currentTimeMillis() + ACCESS_TOKEN_HOURS_TO_ADD))
                 .sign(HMAC512(secret.getBytes()));
     }
 
     public String createRefreshToken(UserPrincipal userPrincipal) {
 
-        String[] claims = getClaimsFromUser(userPrincipal);
         return JWT.create()
                 .withIssuer(WE_MANAGE)
                 .withAudience(WE_MANAGE)
-                .withIssuedAt(Instant.from(now()))
+                .withIssuedAt(new Date())
                 .withSubject(userPrincipal.getUsername())
-                .withExpiresAt(Instant.from(now().plusHours(REFRESH_TOKEN_HOURS_TO_ADD)))
+                .withExpiresAt(new Date(currentTimeMillis() + REFRESH_TOKEN_HOURS_TO_ADD))
                 .sign(HMAC512(secret.getBytes()));
+    }
+
+    public String getSubject(String token, HttpServletRequest request) {
+
+        try {
+            return getJWTVerifier().verify(token).getSubject();
+
+        } catch (TokenExpiredException e) {
+            request.setAttribute("expiredMessage", e.getMessage());
+            throw e;
+
+        } catch (InvalidClaimException e) {
+            request.setAttribute("invalidClaim", e.getMessage());
+            throw e;
+        }
     }
 
 
@@ -89,5 +112,24 @@ public class TokenProvider {
         return userPrincipal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toArray(String[]::new);
+    }
+
+    public Authentication getAuthentication(String email, List<GrantedAuthority> authorities, HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                new UsernamePasswordAuthenticationToken(email, null, authorities);
+
+        usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        return usernamePasswordAuthenticationToken;
+    }
+
+    public boolean isTokenValid(String email, String token) {
+        JWTVerifier verifier = getJWTVerifier();
+        return StringUtils.isNotEmpty(email) && !isTokenExpired(verifier, token);
+    }
+
+    private boolean isTokenExpired(JWTVerifier verifier, String token) {
+
+        Date expiration = verifier.verify(token).getExpiresAt();
+        return expiration.before(Date.from(Instant.from(now())));
     }
 }

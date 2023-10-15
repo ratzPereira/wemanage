@@ -1,9 +1,12 @@
 package com.ratz.wemanage.Controller;
 
 import com.ratz.wemanage.domain.User;
+import com.ratz.wemanage.domain.UserPrincipal;
 import com.ratz.wemanage.domain.response.HttpResponse;
 import com.ratz.wemanage.dto.UserDTO;
 import com.ratz.wemanage.form.LoginForm;
+import com.ratz.wemanage.provider.TokenProvider;
+import com.ratz.wemanage.service.RoleService;
 import com.ratz.wemanage.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +33,9 @@ import static java.time.LocalDateTime.now;
 public class UserController {
 
     private final UserService userService;
+    private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
+    private final TokenProvider tokenProvider;
 
     @PostMapping("/login")
     public ResponseEntity<HttpResponse> login(@RequestBody @Valid LoginForm loginForm) {
@@ -56,6 +61,10 @@ public class UserController {
                         .build());
     }
 
+    private UserPrincipal getUserPrincipal(UserDTO userDTO) {
+        return new UserPrincipal(userService.getUser(userDTO.getEmail()), roleService.getRoleByUserId(userDTO.getId()).getPermission());
+    }
+
     private URI getURI() {
         return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/v1/user/get/<userId>").toUriString());
     }
@@ -66,7 +75,9 @@ public class UserController {
         return ResponseEntity.ok()
                 .body(HttpResponse.builder()
                         .timeStamp(now().toString())
-                        .data(Map.of("user", userDTO))
+                        .data(Map.of("user", userDTO,
+                                "access_token", tokenProvider.createAccessToken(getUserPrincipal(userDTO)),
+                                "refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(userDTO))))
                         .message("User logged in")
                         .statusCode(HttpStatus.OK.value())
                         .httpStatus(HttpStatus.OK)
