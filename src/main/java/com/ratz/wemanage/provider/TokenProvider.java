@@ -17,13 +17,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static java.lang.System.currentTimeMillis;
-import static java.time.LocalTime.now;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
@@ -130,6 +128,6 @@ public class TokenProvider {
     private boolean isTokenExpired(JWTVerifier verifier, String token) {
 
         Date expiration = verifier.verify(token).getExpiresAt();
-        return expiration.before(Date.from(Instant.from(now())));
+        return expiration.before(new Date());
     }
 }

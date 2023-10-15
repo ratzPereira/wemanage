@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -26,7 +27,7 @@ import static java.time.LocalDateTime.now;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/user")
 @Slf4j
 public class UserController {
 
@@ -44,7 +45,7 @@ public class UserController {
         return userDTO.isUsingMfa() ? sendVerificationCode(userDTO) : sendResponse(userDTO);
     }
 
-    @PostMapping("/user")
+    @PostMapping("/register")
     public ResponseEntity<HttpResponse> createUser(@RequestBody @Valid User user) {
 
         UserDTO userDTO = userService.createUser(user);
@@ -59,7 +60,7 @@ public class UserController {
                         .build());
     }
 
-    @GetMapping("/user/verify/code/{email}/{code}")
+    @GetMapping("/verify/code/{email}/{code}")
     public ResponseEntity<HttpResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
 
         UserDTO userDTO = userService.verifyCode(email, code);
@@ -71,6 +72,21 @@ public class UserController {
                                 "access_token", tokenProvider.createAccessToken(getUserPrincipal(userDTO)),
                                 "refresh_token", tokenProvider.createRefreshToken(getUserPrincipal(userDTO))))
                         .message("User logged in")
+                        .statusCode(HttpStatus.OK.value())
+                        .httpStatus(HttpStatus.OK)
+                        .build());
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<HttpResponse> profile(Authentication authentication) {
+
+        UserDTO userDTO = userService.getUserByEmail(authentication.getName());
+
+        return ResponseEntity.ok()
+                .body(HttpResponse.builder()
+                        .timeStamp(now().toString())
+                        .data(Map.of("user", userDTO))
+                        .message("Profile fetched")
                         .statusCode(HttpStatus.OK.value())
                         .httpStatus(HttpStatus.OK)
                         .build());
