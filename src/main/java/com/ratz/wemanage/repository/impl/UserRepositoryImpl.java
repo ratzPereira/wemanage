@@ -153,6 +153,10 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
 
     @Override
     public User verifyCode(String email, String code) {
+
+        if (isVerificationCodeExpired(code))
+            throw new ApiException("Verification code has expired. Please request a new one.");
+
         try {
             User userByCode = jdbc.queryForObject(SELECT_USER_BY_USER_CODE_QUERY, Map.of("code", code), new UserRowMapper());
             User userByEmail = jdbc.queryForObject(SELECT_USER_BY_EMAIL_QUERY, Map.of("email", email), new UserRowMapper());
@@ -174,7 +178,6 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
             throw new ApiException("An error occurred. Please try again.");
         }
     }
-
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -203,4 +206,18 @@ public class UserRepositoryImpl implements UserRepository<User>, UserDetailsServ
         return ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/verify" + type + "/" + key).toUriString();
     }
 
+    private Boolean isVerificationCodeExpired(String code) {
+
+        try {
+            return jdbc.queryForObject(CHECK_IF_VERIFICATION_CODE_IS_EXPIRED, Map.of("code", code), Boolean.class);
+
+        } catch (EmptyResultDataAccessException e) {
+            log.error("Error occurred while verifying code expiration date: {}", e.getMessage());
+            throw new ApiException("Code not valid. Please try again.");
+
+        } catch (Exception ex) {
+            log.error("Error occurred while checking if verification code is expired: {}", ex.getMessage());
+            throw new ApiException("An error occurred. Please try again.");
+        }
+    }
 }

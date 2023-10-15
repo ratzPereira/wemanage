@@ -21,6 +21,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.Map;
 
+import static com.ratz.wemanage.mapper.UserDTOMapper.toUser;
 import static java.time.LocalDateTime.now;
 
 @RequiredArgsConstructor
@@ -76,7 +77,7 @@ public class UserController {
     }
 
     private UserPrincipal getUserPrincipal(UserDTO userDTO) {
-        return new UserPrincipal(userService.getUser(userDTO.getEmail()), roleService.getRoleByUserId(userDTO.getId()).getPermission());
+        return new UserPrincipal(toUser(userService.getUserByEmail(userDTO.getEmail())), roleService.getRoleByUserId(userDTO.getId()).getPermission());
     }
 
     private URI getURI() {
